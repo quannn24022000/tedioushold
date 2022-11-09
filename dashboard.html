@@ -1,0 +1,171 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="style/dashboard.css"> 
+    <title>Dashboard</title>
+</head>
+
+<body>
+    <div id="header" >
+        <h1 >CAMERA DASHBOARD</h1>
+        <div class="mode">
+            <div id="logout" onclick="handler_logout()">
+                <p>Back</p>
+            </div>
+        </div>
+    </div>  
+    <div class="cards">
+        <div class="card">
+            <h2><b>CAM 1</b></h2>
+            <div class="module">
+                <img id="ESP32-1" src=""/>
+                <h2 id="current-timer1"></h2>
+            </div>
+        </div>
+        <div class="card">
+            <h2><b>CAM 2</b></h2>
+            <div class="module">
+                <img id="ESP32-2" src="" />
+                <h2 id="current-timer2"></h2>
+            </div>
+        </div>
+    </div>
+    <div class="button">
+        <div class="card">
+            <div class= 'container'>
+                <div class="mode">
+                    <button class="button-1" role="button" onclick="handler_camera_1()">
+                        <p id="text_camera1">Streamming</p>
+                    </button>
+                </div>
+                <div id="send-timer1">
+                    <form class="form">
+                        <input type="email" class="time_set" placeholder="10:30 PM" />
+                    </form>
+                    <div type="button" class="send_btn" onclick="handler_specific_camera1()">Send</div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class= 'container'>
+                <div class="mode">
+                    <button class="button-2" role="button" onclick="handler_camera_2()">
+                        <p id="text_camera2">Streamming</p>
+                    </button>
+                </div>
+                <div id="send-timer2">
+                    <form class="form">
+                        <input type="email" class="time_set" placeholder="10:30 PM" />
+                    </form>
+                    <div type="button" class="send_btn" onclick="handler_specific_camera2()">Send</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const img_1 = document.getElementById("ESP32-1");
+        const img_2 = document.getElementById("ESP32-2");
+        // var imageFrame;
+
+        // const WS_URL = 'ws:///<YOUR_LOCAL_IP_ADDRESS_HERE>:8888';
+        // const ws = new WebSocket(WS_URL);
+        // let urlObject;
+        // ws.onopen = () => {
+        //     console.log(`Connected to ${WS_URL}`);
+        //     ws.send("WEB_CLIENT");
+        // };
+
+        // ws.onmessage = async (message) => {
+        //     const arrayBuffer = message.data;
+        //     if (urlObject) {
+        //         URL.revokeObjectURL(urlObject);
+        //     }
+        //     var blobObj = new Blob([arrayBuffer]);
+        //     const buf = await blobObj.arrayBuffer();
+        //     var uint8 = new Uint8Array(buf.slice(12, 13));
+        //     var currentCam = uint8[0];
+        //     console.log("current Cam: ", currentCam);
+
+        //     imageFrame = (currentCam == 1) ? img_1 : img_2;
+
+
+        //     urlObject = URL.createObjectURL(blobObj);
+        //     imageFrame.src = urlObject;
+        // }
+
+        //1. Handler message from Websocket
+        const img = document.querySelector('img');
+        const WS_URL = 'ws:///192.168.3.122:8888';
+        const ws = new WebSocket(WS_URL);
+        let urlObject;
+        ws.onopen = () => console.log(`Connected to ${WS_URL}`);
+        ws.onmessage = message => {
+            const arrayBuffer = message.data;
+            if(urlObject){
+                URL.revokeObjectURL(urlObject);
+            }
+            urlObject = URL.createObjectURL(new Blob([arrayBuffer]));
+            img_2.src = urlObject;
+            img_1.src = urlObject;
+        }
+
+
+        //2.  Time handle
+        let timer_1 = document.getElementById("current-timer1");
+        let timer_2 = document.getElementById("current-timer2");
+        setInterval(() => {
+            let d = new Date();
+            timer_1.innerHTML = d.toLocaleTimeString();
+            timer_2.innerHTML = d.toLocaleTimeString();
+        }, 1000);
+
+        
+        //3. Handler button
+        function handler_camera_1() {
+            element = document.getElementById("text_camera1");
+            sendbtn = document.getElementById("send-timer1");
+            if(element.innerHTML == "Streamming")
+            {
+                element.innerHTML = "Review";
+                sendbtn.style.display = "flex";
+               
+            }
+            else 
+            {
+                element.innerHTML = "Streamming";
+                sendbtn.style.display = "none";
+            }
+        }
+        function handler_camera_2() {
+            element = document.getElementById("text_camera2");
+            sendbtn = document.getElementById("send-timer2");
+            if(element.innerHTML == "Streamming")
+            {
+                element.innerHTML = "Review";
+                sendbtn.style.display = "flex";
+               
+            }
+            else 
+            {
+                element.innerHTML = "Streamming";
+                sendbtn.style.display = "none";
+            }
+        }
+
+        //3. Handler navigate page
+        function handler_logout()
+        {
+            window.location.href = "./login.html"
+        }
+        function handler_specific_camera1() {
+            window.location.href = "./firstcamera.html"
+        }
+        function handler_specific_camera2() {
+            window.location.href = "./secondcamera.html"
+        }
+        
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,47 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="style/specific.css"> 
+    <title>Dashboard</title>
+</head>
+
+<body>
+    <div id="header" >
+        <h1 >CAMERA DASHBOARD</h1>
+        <div id="logout" onclick="handler_back()">
+            <p>Back</p>
+        </div>
+    </div>  
+    <div class="cards">
+        <div class="card">
+            <h2><b>REVIEW FOR CAMERA 2</b></h2>
+            <div class="module">
+                <img id="ESP32-2" src=""/>
+                <h2 id="current-timer2"></h2>
+            </div>
+        </div>
+    </div>
+    <script>
+        const img_2 = document.getElementById("ESP32-2");
+        const WS_URL = 'ws:///192.168.3.122:8888';
+        const ws = new WebSocket(WS_URL);
+        let urlObject;
+        ws.onopen = () => console.log(`Connected to ${WS_URL}`);
+        ws.onmessage = message => {
+            const arrayBuffer = message.data;
+            if(urlObject){
+                URL.revokeObjectURL(urlObject);
+            }
+            urlObject = URL.createObjectURL(new Blob([arrayBuffer]));
+            img_2.src = urlObject;
+        }
+
+        function handler_back()
+        {
+            window.location.href = "./dashboard.html"
+        }
+    </script>
+
+</body>
+
+</html>

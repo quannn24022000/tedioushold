@@ -1,0 +1,185 @@
+@import url('https://fonts.googleapis.com/css?family=Quicksand&display=swap');
+
+*{
+    margin:0;
+    padding:0;
+    /* font-family: "poppins", sans-serif; */
+    box-sizing: border-box;
+}
+html {
+    font-size: 22px;
+}
+
+h1 {
+    font-family: "Montserrat", sans-serif;
+    font-weight: 600;
+    font-size: 4.5vw;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 30px;
+    margin: 0px;
+    color: #075272;
+}
+
+h2 {
+    font-family: 'Quicksand', sans-serif;
+    text-align: center;
+    margin: 0px;
+    padding-bottom: 15px;
+}
+
+body {
+    background: hsl(204 100% 5%);
+    color: white;
+    box-sizing: border-box;
+    place-content: center;
+    margin: 0;
+}
+
+.module{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+#current-timer1, #current-timer2{
+    position: absolute;
+    top: 1%;
+    left: 3%;
+    color: lightgrey;   
+    font-size: 20px;
+}
+
+.mode{
+    width: 100px;
+    margin-bottom: 6px;
+}
+.container {
+    justify-content: space-around;
+    flex-wrap: wrap;
+}
+
+#send-timer1, #send-timer2 {
+    align-items: center;
+    margin: auto;
+    justify-content: center;
+    display: none;
+}
+
+.form{
+    width: 53%;
+}
+
+.card {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    flex: 1;
+    background-color: lightgrey;
+    color: hsl(204 100% 5%);
+    padding: 0.8rem;
+}
+
+.cards {
+    max-width: 1400px;
+    margin: auto;
+    grid-gap: 1rem;
+    display: flex;
+    padding: 10px;
+}
+
+.button{
+    max-width: 1400px;
+    margin: auto;
+    grid-gap: 1rem;
+    display: flex;
+    padding: 10px;
+    padding-bottom: 200px;
+}
+#header
+{
+    display: flex;
+    text-align: center;
+    align-items: center;
+}
+h1{
+    margin: 0 auto;
+}
+
+#logout
+{
+    position: relative;
+    right: 110px;
+    align-items: center;
+    padding: 20px;
+    background-color: white;
+    border: 1px solid transparent;
+    border-radius: .25rem;
+    box-shadow: rgba(0, 0, 0, 0.02) 0 1px 3px 0;
+    box-sizing: border-box;
+    color: hsl(204 100% 5%);
+    cursor: pointer;
+    display: inline-flex;
+    font-family: system-ui,-apple-system,system-ui,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    justify-content: center;
+    line-height: 1.25;
+    box-sizing: border-box;
+}
+
+.time_set, .button-1, .button-2, .send_btn{
+    align-items: center;
+    background-clip: padding-box;
+    background-color: hsl(204 100% 5%);;
+    border: 1px solid transparent;
+    border-radius: .25rem;
+    box-shadow: rgba(0, 0, 0, 0.02) 0 1px 3px 0;
+    box-sizing: border-box;
+    color: #fff;
+    cursor: pointer;
+    display: inline-flex;
+    font-family: system-ui,-apple-system,system-ui,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    justify-content: center;
+    line-height: 1.25;
+    margin: 0;
+    min-height: 3rem;
+    padding: calc(.875rem - 1px) calc(1.5rem - 1px);
+    position: relative;
+    text-decoration: none;
+    transition: all 250ms;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    vertical-align: baseline;
+    width: auto;
+    flex: 1;
+}
+
+#logout:hover{
+    transform: translateY(-1px);
+}
+
+#logout:active{
+    background-color: #075272;
+    box-shadow: rgba(0, 0, 0, .06) 0 2px 4px;
+    transform: translateY(0);
+}
+
+.button-1:hover, .button-2:hover, .send_btn:hover  {
+    transform: translateY(-1px);
+}
+
+.button-1:active, .button-2:active, .send_btn:active {
+    background-color: #075272;
+    box-shadow: rgba(0, 0, 0, .06) 0 2px 4px;
+    transform: translateY(0);
+}
+
+/* Screen larger than 800px? 2 column */
+@media (min-width: 800px) {
+.cards {
+    grid-template-columns: repeat(2, 1fr);
+}
+}
