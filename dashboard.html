@@ -66,50 +66,50 @@
     <script>
         const img_1 = document.getElementById("ESP32-1");
         const img_2 = document.getElementById("ESP32-2");
-        // var imageFrame;
-
-        // const WS_URL = 'ws:///<YOUR_LOCAL_IP_ADDRESS_HERE>:8888';
+    
+        //1.1 Handler message from Websocket for single camera
+        // const img = document.querySelector('img');
+        // const WS_URL = 'ws:///192.168.3.122:8888';
         // const ws = new WebSocket(WS_URL);
         // let urlObject;
-        // ws.onopen = () => {
-        //     console.log(`Connected to ${WS_URL}`);
-        //     ws.send("WEB_CLIENT");
-        // };
-
-        // ws.onmessage = async (message) => {
+        // ws.onopen = () => console.log(`Connected to ${WS_URL}`);
+        // ws.onmessage = message => {
         //     const arrayBuffer = message.data;
-        //     if (urlObject) {
+        //     if(urlObject){
         //         URL.revokeObjectURL(urlObject);
         //     }
-        //     var blobObj = new Blob([arrayBuffer]);
-        //     const buf = await blobObj.arrayBuffer();
-        //     var uint8 = new Uint8Array(buf.slice(12, 13));
-        //     var currentCam = uint8[0];
-        //     console.log("current Cam: ", currentCam);
-
-        //     imageFrame = (currentCam == 1) ? img_1 : img_2;
-
-
-        //     urlObject = URL.createObjectURL(blobObj);
-        //     imageFrame.src = urlObject;
+        //     urlObject = URL.createObjectURL(new Blob([arrayBuffer]));
+        //     img_2.src = urlObject;
+        //     img_1.src = urlObject;
         // }
 
-        //1. Handler message from Websocket
-        const img = document.querySelector('img');
+        //1.2 Function for MULTIPLE CAMERA
+        var imageFrame;
         const WS_URL = 'ws:///192.168.3.122:8888';
         const ws = new WebSocket(WS_URL);
         let urlObject;
-        ws.onopen = () => console.log(`Connected to ${WS_URL}`);
-        ws.onmessage = message => {
+        ws.onopen = () => {
+            console.log(`Connected to ${WS_URL}`);
+            ws.send("WEB_CLIENT");
+        };
+
+        ws.onmessage = async (message) => {
             const arrayBuffer = message.data;
-            if(urlObject){
+            if (urlObject) {
                 URL.revokeObjectURL(urlObject);
             }
-            urlObject = URL.createObjectURL(new Blob([arrayBuffer]));
-            img_2.src = urlObject;
-            img_1.src = urlObject;
-        }
+            var blobObj = new Blob([arrayBuffer]);          // construct of Blob has array argument
+            const buf = await blobObj.arrayBuffer();
+            var uint8 = new Uint8Array(buf.slice(12, 13));  //get ID camera
+            var currentCam = uint8[0];                      // beacause an array has one element
+            console.log("current Cam: ", currentCam);
 
+            imageFrame = (currentCam == 1) ? img_1 : img_2;
+
+
+            urlObject = URL.createObjectURL(blobObj);
+            imageFrame.src = urlObject;
+        }
 
         //2.  Time handle
         let timer_1 = document.getElementById("current-timer1");
@@ -153,7 +153,7 @@
             }
         }
 
-        //3. Handler navigate page
+        //4. Handler navigate page
         function handler_logout()
         {
             window.location.href = "./login.html"
