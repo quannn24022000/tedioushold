@@ -19,6 +19,8 @@ h1 {
     padding: 30px;
     margin: 0px;
     color: #075272;
+    justify-items: center;
+    justify-content: center;
 }
 
 h2 {
@@ -37,10 +39,14 @@ body {
 }
 
 .module{
-    display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
+    display: block;
+    max-width:800px;
+    max-height:600px;
+    width: auto;
+    height: auto;
 }
 
 #current-timer1, #current-timer2{
@@ -51,9 +57,30 @@ body {
     font-size: 20px;
 }
 
+.mode-back{
+    width: 100px;
+}
+
+.dot {
+    height: 25px;
+    width: 25px;
+    background-color: #f44336;
+    border-radius: 50%;
+    display: inline-block;
+    margin-left: 10px;
+}
+
+#cam_1_mode, #cam_1_enabler, #cam_1_save,
+#cam_2_mode, #cam_2_enabler, #cam_2_save
+{
+    margin-right: 20px;
+    min-width: 160px;
+}
 .mode{
     width: 100px;
-    margin-bottom: 6px;
+    margin-right: 10px;
+    display: flex;
+    margin-bottom: 12px;
 }
 .container {
     justify-content: space-around;
@@ -68,7 +95,7 @@ body {
 }
 
 .form{
-    width: 53%;
+    width: 56%;
 }
 
 .card {
@@ -127,6 +154,9 @@ h1{
     box-sizing: border-box;
 }
 
+.button-1{
+    flex: 1;
+}
 .time_set, .button-1, .button-2, .send_btn{
     align-items: center;
     background-clip: padding-box;

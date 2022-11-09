@@ -8,7 +8,7 @@
 <body>
     <div id="header" >
         <h1 >CAMERA DASHBOARD</h1>
-        <div class="mode">
+        <div class="mode-back">
             <div id="logout" onclick="handler_logout()">
                 <p>Back</p>
             </div>
@@ -16,17 +16,17 @@
     </div>  
     <div class="cards">
         <div class="card">
-            <h2><b>CAM 1</b></h2>
+            <h2><b>CAM 1<span class="dot" id= "cam_1_red_dot" style="visibility: hidden"></span></b></h2>
             <div class="module">
-                <img id="ESP32-1" src=""/>
-                <h2 id="current-timer1"></h2>
+                <img id="ESP32-1" style="visibility: hidden" src=""/>
+                <h2 id="current-timer1" style="visibility: hidden"></h2>
             </div>
         </div>
         <div class="card">
-            <h2><b>CAM 2</b></h2>
+            <h2><b>CAM 2<span class="dot" id= "cam_2_red_dot" style="visibility: hidden"></span></b></h2>
             <div class="module">
-                <img id="ESP32-2" src="" />
-                <h2 id="current-timer2"></h2>
+                <img id="ESP32-2" style="visibility: hidden" src="" />
+                <h2 id="current-timer2" style="visibility: hidden"></h2>
             </div>
         </div>
     </div>
@@ -34,7 +34,13 @@
         <div class="card">
             <div class= 'container'>
                 <div class="mode">
-                    <button class="button-1" role="button" onclick="handler_camera_1()">
+                    <button class="button-1" id="cam_1_enabler" onclick="handler_play_button1()">
+                        <p>Play</p>
+                    </button>
+                    <button class="button-1" id="cam_1_save" onclick="saveFunc('cam_1_enabler')">
+                        <p>Save image</p>
+                    </button>
+                    <button class="button-1" id="cam_1_mode" onclick="handler_camera_1()">
                         <p id="text_camera1">Streamming</p>
                     </button>
                 </div>
@@ -49,7 +55,13 @@
         <div class="card">
             <div class= 'container'>
                 <div class="mode">
-                    <button class="button-2" role="button" onclick="handler_camera_2()">
+                    <button class="button-2" id="cam_2_enabler" onclick="handler_play_button2()">
+                        <p>Play</p>
+                    </button>
+                    <button class="button-2" id="cam_2_save" onclick="saveFunc('cam_2_enabler')">
+                        <p>Save image</p>
+                    </button>
+                    <button class="button-2" id="cam_2_mode" onclick="handler_camera_2()">
                         <p id="text_camera2">Streamming</p>
                     </button>
                 </div>
@@ -64,8 +76,16 @@
     </div>
 
     <script>
+        let urlObject_1, urlObject_2;
+        var imageFrame;
+
+        const WS_URL = 'ws:///192.168.3.122:8888';
+        const ws = new WebSocket(WS_URL);
         const img_1 = document.getElementById("ESP32-1");
         const img_2 = document.getElementById("ESP32-2");
+
+        window["cam_1_enabler"] = false;
+        window["cam_2_enabler"] = false;
     
         //1.1 Handler message from Websocket for single camera
         // const img = document.querySelector('img');
@@ -84,10 +104,6 @@
         // }
 
         //1.2 Function for MULTIPLE CAMERA
-        var imageFrame;
-        const WS_URL = 'ws:///192.168.3.122:8888';
-        const ws = new WebSocket(WS_URL);
-        let urlObject;
         ws.onopen = () => {
             console.log(`Connected to ${WS_URL}`);
             ws.send("WEB_CLIENT");
@@ -95,20 +111,33 @@
 
         ws.onmessage = async (message) => {
             const arrayBuffer = message.data;
-            if (urlObject) {
-                URL.revokeObjectURL(urlObject);
-            }
             var blobObj = new Blob([arrayBuffer]);          // construct of Blob has array argument
             const buf = await blobObj.arrayBuffer();
             var uint8 = new Uint8Array(buf.slice(12, 13));  //get ID camera
             var currentCam = uint8[0];                      // beacause an array has one element
-            console.log("current Cam: ", currentCam);
 
-            imageFrame = (currentCam == 1) ? img_1 : img_2;
-
-
-            urlObject = URL.createObjectURL(blobObj);
-            imageFrame.src = urlObject;
+            if(currentCam == 1)
+            {
+                imageFrame = img_1;
+                document.getElementById("cam_1_red_dot").style.visibility = "visible";
+                if(!window["cam_1_enabler"]) return;
+                if (urlObject_1) {
+                    URL.revokeObjectURL(urlObject_1);
+                }
+                urlObject_1 = URL.createObjectURL(blobObj);
+                imageFrame.src = urlObject_1;
+            }
+            else
+            {
+                imageFrame = img_2;
+                document.getElementById("cam_2_red_dot").style.visibility = "visible";
+                if (!window["cam_2_enabler"]) return;
+                if (urlObject_2) {
+                    URL.revokeObjectURL(urlObject_2);
+                }
+                urlObject_2 = URL.createObjectURL(blobObj);
+                imageFrame.src = urlObject_2;
+            }
         }
 
         //2.  Time handle
@@ -164,7 +193,91 @@
         function handler_specific_camera2() {
             window.location.href = "./secondcamera.html"
         }
+
+        //5. Handle Pause and Play
+        function handler_play_button1(){
+            var enable = document.getElementById("cam_1_enabler");
+            
+            if(enable.innerHTML == "Pause")
+            {
+                enable.innerHTML = "Play";
+                window["cam_1_enabler"] = false;
+                document.getElementById("current-timer1").style.visibility = "hidden"
+                img_1.style.visibility = "hidden"
+            }
+            else 
+            {
+                enable.innerHTML = "Pause";
+                window["cam_1_enabler"] = true;
+                document.getElementById("current-timer1").style.visibility = "visible"
+                img_1.style.visibility = "visible"
+            }
+        }
+        function handler_play_button2(){
+            var enable = document.getElementById("cam_2_enabler");
+            
+            if(enable.innerHTML == "Pause")
+            {
+                enable.innerHTML = "Play";
+                window["cam_2_enabler"] = false;
+                document.getElementById("current-timer2").style.visibility = "hidden"
+                img_2.style.visibility = "hidden"
+            }
+            else 
+            {
+                enable.innerHTML = "Pause";
+                window["cam_2_enabler"] = true;
+                document.getElementById("current-timer2").style.visibility = "visible"
+                img_2.style.visibility = "visible"
+            }
+        }
         
+        //6. Handle dot
+        function hideRedDot(){
+            document.getElementById("cam_1_red_dot").style.visibility = "hidden";
+            document.getElementById("cam_2_red_dot").style.visibility = "hidden";
+        }
+
+        setInterval(hideRedDot, 1000);
+
+        //7. Save image
+        function getFomattedTime(camInfo){
+            var today = new Date();
+            var y = today.getFullYear();
+            var m = today.getMonth() + 1;
+            var d = today.getDate();
+            var h = today.getHours();
+            var mi = today.getMinutes();
+            var s = today.getSeconds();
+            return camInfo + "-" + y + "-" + m + "-" + d + "-" + h + "-" + mi + "-" + s;
+        }
+
+        function forceDownload(url, fileName){
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", url, true);
+            xhr.responseType = "blob";
+            xhr.onload = function (){
+                var urlCreator = window.URL || window.webkitURL;
+                var imageUrl = urlCreator.createObjectURL(this.response);
+                var tag = document.createElement("a");
+                tag.href = imageUrl;
+                tag.download = fileName;
+                document.body.appendChild(tag);
+                tag.click();
+                document.body.removeChild(tag);
+            };
+            xhr.send();
+        }
+
+        function saveFunc(source){
+            var blobUrl = source === "cam_1_enabler" ? img_1.src : img_2.src;
+            if(blobUrl.indexOf("blob") == -1){
+                return;
+            }
+            var fileName = getFomattedTime(source === "cam_1_enabler" ? "ESP32CAM1" : "ESP32CAM2") + ".jpeg";
+            forceDownload(blobUrl, fileName);
+        }
+
     </script>
 </body>
 
