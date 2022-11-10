@@ -1,6 +1,7 @@
 const path = require("path");
 const express = require("express");
 const WebSocket = require("ws");
+const fs = require("fs");
 const app = express();
 
 const WS_PORT = 8888;
@@ -9,6 +10,24 @@ const HTTP_PORT = 8000;
 const wsServer = new WebSocket.Server({ port: WS_PORT }, () => console.log(`WS Server is listening at ${WS_PORT}`));
 
 let connectedClients = [];
+let iscam1fresh = 1;
+let iscam2fresh = 1;
+let timecount = 0;
+let count = 0;
+
+setInterval(()=>
+{
+	timecount ++;
+	if(timecount == 50000)
+	{
+		console.log("REFRESH")
+		iscam1fresh = 1;
+		iscam2fresh = 1;
+		fs.rm("/home/nhatquan/Videos/server/camera1", { recursive: true, force: true }, (err) => {console.log("error camera 1 remove database = "+ err)})
+		fs.rm("/home/nhatquan/Videos/server/camera2", { recursive: true, force: true }, (err) => {console.log("error camera 1 remove database = "+ err)})
+		timecount = 0;
+	}
+},1000)
 
 //1. Single Camera
 //ws: refer for a single connection on server side
@@ -56,17 +75,55 @@ let connectedClients = [];
 
 wsServer.on("connection", (ws, req) => {
 	console.log("Connected");
+	// //1. Send image
+	// setInterval(()=>{
+	// 	count++;
+	// 	fs.readFile("/home/nhatquan/Videos/server/"+ count +".jpeg", (err, data)=>{
+	// 		console.log(data)
+	// 		ws.send(data);
+	// 	})
+	// },100)
 
 	ws.on("message", (data) => {
 		if (data.indexOf("WEB_CLIENT") !== -1) 
 		{
 			// Doi voi cac clien request page (192.168.3.122:8000) chi don gian la push vao ARR va return ve
 			connectedClients.push(ws);
-			console.log("WEB_CLIENT ADDED");
-			return;                         // Khi data chi la su kien connect vao SERVER (WEB_CLIENT) thi return va chi return cho callback cua "onmessage" chu khong phai "connection"
-		}                               
+			console.log("Web client connected");
+			// Khi data chi la su kien connect vao SERVER (WEB_CLIENT) thi return va chi return cho callback cua "onmessage" chu khong phai "connection"
+			return;                         
+		}  
 
-        // Khi message khong phai la "WEB_CLIENT" (hay la connection). Thi tat ca cac message (ke ca la cua ESP32-1 hay ESP32-2) se duoc gui toi "ws" (tuc la WEB client) tuong ung dang connect request vao Server. Sau do phia html (client) se tu xu ly message xem la cua ESP32-1 hay ESP32-2 de hien thi len dung khung
+		// Save image file to local storage
+		if(data[12] == 1)
+		{
+			if(iscam1fresh == 1)
+			{
+				fs.mkdir("/home/nhatquan/Videos/server/camera1", { recursive: true }, (err) => {console.log("Create database for camera 1 with error = "+ err)})
+				iscam1fresh = 0;
+			}
+			else
+			{
+				var moment = new Date();
+				fs.writeFile("/home/nhatquan/Videos/server/camera1/"+ moment.getHours()+":"+ moment.getMinutes()+":" + moment.getSeconds()+":" + moment.getMilliseconds()+":" +".jpeg", data, ()=>{});
+			}
+		}
+		else if (data[12] == 2)
+		{
+			if(iscam2fresh == 1)
+			{
+				fs.mkdir("/home/nhatquan/Videos/server/camera2", { recursive: true }, (err) => {console.log("Create database for camera 2 with error = "+ err)})
+				iscam2fresh = 0;
+			}
+			else
+			{
+				var moment = new Date();
+				fs.writeFile("/home/nhatquan/Videos/server/camera2/"+ moment.getHours()+":"+ moment.getMinutes()+":" + moment.getSeconds()+":" + moment.getMilliseconds()+":" +".jpeg", data, ()=>{});
+			}
+		}
+
+        // Khi message khong phai la "WEB_CLIENT" (hay la connection). Thi tat ca cac message (ke ca la cua ESP32-1 hay ESP32-2) se duoc gui toi "ws" (tuc la WEB client) tuong ung dang connect request vao Server. 
+		// Sau do phia html (client) se tu xu ly message xem la cua ESP32-1 hay ESP32-2 de hien thi len dung khung
         // forEach callback function return ws[the element of array] & i[index of array]
 		connectedClients.forEach((ws, i) => {
             // Chi client nao dang vao web (request 192.168.3.122:8000) thi moi nhan duoc message cua rieng no

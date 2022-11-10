@@ -86,6 +86,18 @@
 
         window["cam_1_enabler"] = false;
         window["cam_2_enabler"] = false;
+
+        // let urlObject;
+        // ws.onopen = () => console.log(`Connected to ${WS_URL}`);
+        // ws.onmessage = message => {
+        //     const arrayBuffer = message.data;
+        //     if(urlObject){
+        //         URL.revokeObjectURL(urlObject);
+        //     }
+        //     urlObject = URL.createObjectURL(new Blob([arrayBuffer]));
+        //     img_1.src = urlObject;
+        // }
+
     
         //1.1 Handler message from Websocket for single camera
         // const img = document.querySelector('img');
@@ -125,7 +137,7 @@
                     URL.revokeObjectURL(urlObject_1);
                 }
                 // console.log(timer_1.innerHTML)
-                urlObject_1 = URL.ave(blobObj);
+                urlObject_1 = URL.createObjectURL(blobObj);
                 imageFrame.src = urlObject_1;
             }
             else
