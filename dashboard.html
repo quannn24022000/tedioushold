@@ -37,7 +37,7 @@
                     <button class="button-1" id="cam_1_enabler" onclick="handler_play_button1()">
                         <p>Play</p>
                     </button>
-                    <button class="button-1" id="cam_1_save" onclick="saveFunc('cam_1_enabler')">
+                    <button class="button-1" id="cam_1_save" onclick="handler_save_image('cam_1_enabler')">
                         <p>Save image</p>
                     </button>
                     <button class="button-1" id="cam_1_mode" onclick="handler_camera_1()">
@@ -46,7 +46,7 @@
                 </div>
                 <div id="send-timer1">
                     <form class="form">
-                        <input type="email" class="time_set" placeholder="10:30 PM" />
+                        <input type="email" class="time_set" placeholder="15:30" />
                     </form>
                     <div type="button" class="send_btn" onclick="handler_specific_camera1()">Send</div>
                 </div>
@@ -58,7 +58,7 @@
                     <button class="button-2" id="cam_2_enabler" onclick="handler_play_button2()">
                         <p>Play</p>
                     </button>
-                    <button class="button-2" id="cam_2_save" onclick="saveFunc('cam_2_enabler')">
+                    <button class="button-2" id="cam_2_save" onclick="handler_save_image('cam_2_enabler')">
                         <p>Save image</p>
                     </button>
                     <button class="button-2" id="cam_2_mode" onclick="handler_camera_2()">
@@ -67,7 +67,7 @@
                 </div>
                 <div id="send-timer2">
                     <form class="form">
-                        <input type="email" class="time_set" placeholder="10:30 PM" />
+                        <input type="email" class="time_set" placeholder="15:30" />
                     </form>
                     <div type="button" class="send_btn" onclick="handler_specific_camera2()">Send</div>
                 </div>
@@ -124,7 +124,8 @@
                 if (urlObject_1) {
                     URL.revokeObjectURL(urlObject_1);
                 }
-                urlObject_1 = URL.createObjectURL(blobObj);
+                // console.log(timer_1.innerHTML)
+                urlObject_1 = URL.ave(blobObj);
                 imageFrame.src = urlObject_1;
             }
             else
@@ -145,8 +146,8 @@
         let timer_2 = document.getElementById("current-timer2");
         setInterval(() => {
             let d = new Date();
-            timer_1.innerHTML = d.toLocaleTimeString();
-            timer_2.innerHTML = d.toLocaleTimeString();
+            timer_1.innerHTML = d.toLocaleTimeString('en-US', {hour12: false});
+            timer_2.innerHTML = d.toLocaleTimeString('en-US', {hour12: false});
         }, 1000);
 
         
@@ -269,7 +270,7 @@
             xhr.send();
         }
 
-        function saveFunc(source){
+        function handler_save_image(source){
             var blobUrl = source === "cam_1_enabler" ? img_1.src : img_2.src;
             if(blobUrl.indexOf("blob") == -1){
                 return;
@@ -277,6 +278,9 @@
             var fileName = getFomattedTime(source === "cam_1_enabler" ? "ESP32CAM1" : "ESP32CAM2") + ".jpeg";
             forceDownload(blobUrl, fileName);
         }
+
+        //8. Save database
+
 
     </script>
 </body>

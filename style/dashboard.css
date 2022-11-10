@@ -49,6 +49,10 @@ body {
     height: auto;
 }
 
+#current-timer2, #ESP32-2{
+    padding-left: 130px;
+}
+
 #current-timer1, #current-timer2{
     position: absolute;
     top: 1%;
