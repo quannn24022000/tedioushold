@@ -14,6 +14,7 @@ let iscam1fresh = 1;
 let iscam2fresh = 1;
 let timecount = 0;
 let count = 0;
+let count_1 = 0;
 
 setInterval(()=>
 {
@@ -78,7 +79,7 @@ wsServer.on("connection", (ws, req) => {
 	// //1. Send image
 	// setInterval(()=>{
 	// 	count++;
-	// 	fs.readFile("/home/nhatquan/Videos/server/"+ count +".jpeg", (err, data)=>{
+	// 	fs.readFile("/home/nhatquan/Videos/server/camera1/"+ count +".jpeg", (err, data)=>{
 	// 		console.log(data)
 	// 		ws.send(data);
 	// 	})
@@ -105,10 +106,11 @@ wsServer.on("connection", (ws, req) => {
 			else
 			{
 				var moment = new Date();
-				fs.writeFile("/home/nhatquan/Videos/server/camera1/"+ moment.getHours()+":"+ moment.getMinutes()+":" + moment.getSeconds()+":" + moment.getMilliseconds()+":" +".jpeg", data, ()=>{});
+				fs.writeFile("/home/nhatquan/Videos/server/camera1/"+ moment.getHours()+":"+ moment.getMinutes()+":" + moment.getSeconds()+":" + moment.getMilliseconds()+".jpeg", data, ()=>{});
+				// fs.writeFile("/home/nhatquan/Videos/server/camera1/"+ count_1 + ".jpeg", data, ()=>{});
 			}
 		}
-		else if (data[12] == 2)
+		if (data[12] == 2)
 		{
 			if(iscam2fresh == 1)
 			{
@@ -118,7 +120,7 @@ wsServer.on("connection", (ws, req) => {
 			else
 			{
 				var moment = new Date();
-				fs.writeFile("/home/nhatquan/Videos/server/camera2/"+ moment.getHours()+":"+ moment.getMinutes()+":" + moment.getSeconds()+":" + moment.getMilliseconds()+":" +".jpeg", data, ()=>{});
+				fs.writeFile("/home/nhatquan/Videos/server/camera2/"+ moment.getHours()+":"+ moment.getMinutes()+":" + moment.getSeconds()+":" + moment.getMilliseconds()+".jpeg", data, ()=>{});
 			}
 		}
 
