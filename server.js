@@ -7,15 +7,19 @@ const app = express();
 const WS_PORT = 8888;
 const HTTP_PORT = 8000;
 
+//I. KHỞI TẠO
+//1. Tạo socket
 const wsServer = new WebSocket.Server({ port: WS_PORT }, () => console.log(`WS Server is listening at ${WS_PORT}`));
 
-let connectedClients = [];
-let iscam1fresh = 1;
-let iscam2fresh = 1;
-let timecount = 0;
+//2. Tạo biến lưu trữ
+let connectedClients = [];							// Biến lưu trữ số web client đang connect đến socket (pc, mobile...)
+let iscam1fresh = 1;								// Check xem có cần tạo folder để chứa frame cho cam 1 hay không
+let iscam2fresh = 1;								
+let timecount = 0;									// Thời gian reset (xóa folder của các cam = time lưu trữ) = 2 tiếng
 let count = 0;
 let count_1 = 0;
 
+//3. Reset lại bộ nhớ khi lưu trữ đủ 2 tiếng
 setInterval(()=>
 {
 	timecount ++;
@@ -30,6 +34,7 @@ setInterval(()=>
 	}
 },1000)
 
+//II. XỬ LÝ CHO CAMERA
 //1. Single Camera
 //ws: refer for a single connection on server side
 // wsServer.on('connection', (ws, req)=>{
@@ -86,6 +91,7 @@ wsServer.on("connection", (ws, req) => {
 	// },100)
 
 	ws.on("message", (data) => {
+		//1. Lắng nghe connect từ web client
 		if (data.indexOf("WEB_CLIENT") !== -1) 
 		{
 			// Doi voi cac clien request page (192.168.3.122:8000) chi don gian la push vao ARR va return ve
@@ -95,7 +101,7 @@ wsServer.on("connection", (ws, req) => {
 			return;                         
 		}  
 
-		// Save image file to local storage
+		//2. Khi nhận message (các frame) từ ESP32 client thì save image file vào local storage (folder camera1 cho cam1 và camera2 cho cam2)
 		if(data[12] == 1)
 		{
 			if(iscam1fresh == 1)
@@ -124,6 +130,8 @@ wsServer.on("connection", (ws, req) => {
 			}
 		}
 
+
+		//3. Gửi STREAM đến tất cả các Web client đang lắng nghe
         // Khi message khong phai la "WEB_CLIENT" (hay la connection). Thi tat ca cac message (ke ca la cua ESP32-1 hay ESP32-2) se duoc gui toi "ws" (tuc la WEB client) tuong ung dang connect request vao Server. 
 		// Sau do phia html (client) se tu xu ly message xem la cua ESP32-1 hay ESP32-2 de hien thi len dung khung
         // forEach callback function return ws[the element of array] & i[index of array]
