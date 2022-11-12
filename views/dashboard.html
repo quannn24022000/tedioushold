@@ -1,7 +1,7 @@
 <html>
 
 <head>
-    <link rel="stylesheet" href="style/dashboard.css"> 
+    <link rel="stylesheet" href="/style/dashboard.css"> 
     <title>Dashboard</title>
 </head>
 
@@ -41,14 +41,8 @@
                         <p>Save image</p>
                     </button>
                     <button class="button-1" id="cam_1_mode" onclick="handler_camera_1()">
-                        <p id="text_camera1">Streamming</p>
+                        <p id="text_camera1">Review</p>
                     </button>
-                </div>
-                <div id="send-timer1">
-                    <form class="form">
-                        <input type="email" class="time_set" placeholder="15:30" />
-                    </form>
-                    <div type="button" class="send_btn" onclick="handler_specific_camera1()">Send</div>
                 </div>
             </div>
         </div>
@@ -62,14 +56,8 @@
                         <p>Save image</p>
                     </button>
                     <button class="button-2" id="cam_2_mode" onclick="handler_camera_2()">
-                        <p id="text_camera2">Streamming</p>
+                        <p id="text_camera2">Review</p>
                     </button>
-                </div>
-                <div id="send-timer2">
-                    <form class="form">
-                        <input type="email" class="time_set" placeholder="15:30" />
-                    </form>
-                    <div type="button" class="send_btn" onclick="handler_specific_camera2()">Send</div>
                 </div>
             </div>
         </div>
@@ -84,22 +72,11 @@
         const img_1 = document.getElementById("ESP32-1");
         const img_2 = document.getElementById("ESP32-2");
 
+        //1. Khởi tạo ở giá trị "pause" và đợi chờ đến "play" để phát video
         window["cam_1_enabler"] = false;
         window["cam_2_enabler"] = false;
 
-        // let urlObject;
-        // ws.onopen = () => console.log(`Connected to ${WS_URL}`);
-        // ws.onmessage = message => {
-        //     const arrayBuffer = message.data;
-        //     if(urlObject){
-        //         URL.revokeObjectURL(urlObject);
-        //     }
-        //     urlObject = URL.createObjectURL(new Blob([arrayBuffer]));
-        //     img_1.src = urlObject;
-        // }
-
-    
-        //1.1 Handler message from Websocket for single camera
+        //2.1 Handler message from Websocket for single camera
         // const img = document.querySelector('img');
         // const WS_URL = 'ws:///192.168.3.122:8888';
         // const ws = new WebSocket(WS_URL);
@@ -111,11 +88,10 @@
         //         URL.revokeObjectURL(urlObject);
         //     }
         //     urlObject = URL.createObjectURL(new Blob([arrayBuffer]));
-        //     img_2.src = urlObject;
         //     img_1.src = urlObject;
         // }
 
-        //1.2 Function for MULTIPLE CAMERA
+        //2.2 Function for MULTIPLE CAMERA
         ws.onopen = () => {
             console.log(`Connected to ${WS_URL}`);
             ws.send("WEB_CLIENT");
@@ -123,9 +99,9 @@
 
         ws.onmessage = async (message) => {
             const arrayBuffer = message.data;
-            var blobObj = new Blob([arrayBuffer]);          // construct of Blob has array argument
+            var blobObj = new Blob([arrayBuffer]);          // construct of Blob has array argument (Blob là đối tượng chuyển đổi file ảnh, mảng thành dạng URL và nhờ vào URL để show ảnh )
             const buf = await blobObj.arrayBuffer();
-            var uint8 = new Uint8Array(buf.slice(12, 13));  //get ID camera
+            var uint8 = new Uint8Array(buf.slice(12, 13));  // get ID camera
             var currentCam = uint8[0];                      // beacause an array has one element
 
             if(currentCam == 1)
@@ -136,11 +112,10 @@
                 if (urlObject_1) {
                     URL.revokeObjectURL(urlObject_1);
                 }
-                // console.log(timer_1.innerHTML)
                 urlObject_1 = URL.createObjectURL(blobObj);
                 imageFrame.src = urlObject_1;
             }
-            else
+            if(currentCam == 2)
             {
                 imageFrame = img_2;
                 document.getElementById("cam_2_red_dot").style.visibility = "visible";
@@ -153,7 +128,7 @@
             }
         }
 
-        //2.  Time handle
+        //3.  Time handle
         let timer_1 = document.getElementById("current-timer1");
         let timer_2 = document.getElementById("current-timer2");
         setInterval(() => {
@@ -163,52 +138,27 @@
         }, 1000);
 
         
-        //3. Handler button
+        //4. Handler mode button để chọn mode Review  
         function handler_camera_1() {
-            element = document.getElementById("text_camera1");
-            sendbtn = document.getElementById("send-timer1");
-            if(element.innerHTML == "Streamming")
-            {
-                element.innerHTML = "Review";
-                sendbtn.style.display = "flex";
-               
-            }
-            else 
-            {
-                element.innerHTML = "Streamming";
-                sendbtn.style.display = "none";
-            }
+            window.location.href = "/views/firstcamera.html"
         }
         function handler_camera_2() {
-            element = document.getElementById("text_camera2");
-            sendbtn = document.getElementById("send-timer2");
-            if(element.innerHTML == "Streamming")
-            {
-                element.innerHTML = "Review";
-                sendbtn.style.display = "flex";
-               
-            }
-            else 
-            {
-                element.innerHTML = "Streamming";
-                sendbtn.style.display = "none";
-            }
+            window.location.href = "/views/secondcamera.html"
         }
 
-        //4. Handler navigate page
+        //5. Handler navigate page
         function handler_logout()
         {
-            window.location.href = "./login.html"
+            window.location.href = "/views/login.html"
         }
         function handler_specific_camera1() {
-            ws.send("reviewcamera1");
-            window.location.href = "./firstcamera.html"
+            window.location.href = "/views/firstcamera.html"
         }
         function handler_specific_camera2() {
-            window.location.href = "./secondcamera.html"
+            window.location.href = "/views/secondcamera.html"
         }
 
-        //5. Handle Pause and Play
+        //6. Handle action của button Pause and Play (Khởi tạo ban đầu cam đang hidden và khi play-> visible ngược lại pause->hidden)
         function handler_play_button1(){
             var enable = document.getElementById("cam_1_enabler");
             
@@ -246,7 +196,7 @@
             }
         }
         
-        //6. Handle dot
+        //7. Handle dot => có dòng stream khi đó dot được set visible và cứ 1s tạo hiệu ứng hidden. Còn nếu không thì hidden thôi
         function hideRedDot(){
             document.getElementById("cam_1_red_dot").style.visibility = "hidden";
             document.getElementById("cam_2_red_dot").style.visibility = "hidden";
@@ -254,7 +204,7 @@
 
         setInterval(hideRedDot, 1000);
 
-        //7. Save image
+        //8. Save image
         function getFomattedTime(camInfo){
             var today = new Date();
             var y = today.getFullYear();
@@ -283,6 +233,7 @@
             xhr.send();
         }
 
+
         function handler_save_image(source){
             var blobUrl = source === "cam_1_enabler" ? img_1.src : img_2.src;
             if(blobUrl.indexOf("blob") == -1){
@@ -292,7 +243,6 @@
             forceDownload(blobUrl, fileName);
         }
 
-        //8. Save database
 
 
     </script>

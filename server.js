@@ -2,6 +2,7 @@ const path = require("path");
 const express = require("express");
 const WebSocket = require("ws");
 const fs = require("fs");
+const { parse } = require("path");
 const app = express();
 
 const WS_PORT = 8888;
@@ -16,8 +17,12 @@ let connectedClients = [];							// Biến lưu trữ số web client đang conn
 let iscam1fresh = 1;								// Check xem có cần tạo folder để chứa frame cho cam 1 hay không
 let iscam2fresh = 1;								
 let timecount = 0;									// Thời gian reset (xóa folder của các cam = time lưu trữ) = 2 tiếng
-let count = 0;
-let count_1 = 0;
+let cam1database = [];								// Mảng các chuỗi lưu trữ thời gian lưu ảnh => giúp lưu trữ lại thứ tự để xuất ảnh ra
+let cam2database = [];
+var cam1flag = 0; 
+var cam2flag = 0;
+let cam1count = -1;
+let cam2count = -1;
 
 //3. Reset lại bộ nhớ khi lưu trữ đủ 2 tiếng
 setInterval(()=>
@@ -28,6 +33,8 @@ setInterval(()=>
 		console.log("REFRESH")
 		iscam1fresh = 1;
 		iscam2fresh = 1;
+		cam1database = [];
+		cam2database = [];
 		fs.rm("/home/nhatquan/Videos/server/camera1", { recursive: true, force: true }, (err) => {console.log("error camera 1 remove database = "+ err)})
 		fs.rm("/home/nhatquan/Videos/server/camera2", { recursive: true, force: true }, (err) => {console.log("error camera 1 remove database = "+ err)})
 		timecount = 0;
@@ -81,27 +88,107 @@ setInterval(()=>
 
 wsServer.on("connection", (ws, req) => {
 	console.log("Connected");
-	// //1. Send image
-	// setInterval(()=>{
-	// 	count++;
-	// 	fs.readFile("/home/nhatquan/Videos/server/camera1/"+ count +".jpeg", (err, data)=>{
-	// 		console.log(data)
-	// 		ws.send(data);
-	// 	})
-	// },100)
-
+	
+	// 1. Send image
 	ws.on("message", (data) => {
 		//1. Lắng nghe connect từ web client
 		if (data.indexOf("WEB_CLIENT") !== -1) 
 		{
-			// Doi voi cac clien request page (192.168.3.122:8000) chi don gian la push vao ARR va return ve
+			//1.1 Doi voi cac clien request page (192.168.3.122:8000) chi don gian la push vao ARR va return ve
 			connectedClients.push(ws);
 			console.log("Web client connected");
-			// Khi data chi la su kien connect vao SERVER (WEB_CLIENT) thi return va chi return cho callback cua "onmessage" chu khong phai "connection"
+			//1.2 Khi data chi la su kien connect vao SERVER (WEB_CLIENT) thi return va chi return cho callback cua "onmessage" chu khong phai "connection"
 			return;                         
-		}  
+		}
 
-		//2. Khi nhận message (các frame) từ ESP32 client thì save image file vào local storage (folder camera1 cho cam1 và camera2 cho cam2)
+		//2. Get signal of time review from web client (dashboard.html) and send frame from that time to web client
+		//2.1 Review camera 1
+		if( data.indexOf("cctv1") !== -1)
+		{
+			strtime = data.toString().split(".")[0];
+			strhour = data.toString().split(":")[0];
+			strmin = data.toString().split(":")[1];
+			strsec = data.toString().split(":")[2];
+			for(let i = 0; i < cam1database.length; i++)
+			{
+				console.log(cam1database[i]+" "+ parseInt(cam1database[i].split(":")[0])+ " "+ parseInt(cam1database[i].split(":")[1]))
+				if((parseInt(strhour) == parseInt(cam1database[i].split(":")[0])) && (parseInt(cam1database[i].split(":")[1]) == parseInt(strmin)) && (parseInt(cam1database[i].split(":")[2]) >= parseInt(strsec)))
+				{
+					cam1count = i;
+					break;
+				}			
+			}
+			console.log("CAM1 from frame = "+ cam1count)
+			if(cam1count == -1)
+			{
+				console.log("TIME CAM1 ERROR!!!!")
+			}
+			else cam1flag = 1;
+			setInterval(()=>{
+				if(cam1flag == 1)
+				{
+					cam1count++;
+					fs.readFile("/home/nhatquan/Videos/server/camera1/"+ cam1database[cam1count] +".jpeg", (err, data)=>{
+						if(data != undefined)
+						{
+							data[12] = 3;
+							ws.send(data);	
+							console.log(data)
+						}
+						else 
+						{
+							cam1flag = 0;
+							cam1count = -1;
+						}
+					})
+				}
+			},100)
+		}
+
+		//2.2 Review camera 2
+		if( data.indexOf("cctv2") !== -1)
+		{
+			strtime = data.toString().split(".")[0];
+			strhour = data.toString().split(":")[0];
+			strmin = data.toString().split(":")[1];
+			strsec = data.toString().split(":")[2];
+			for(let i = 0; i < cam2database.length; i++)
+			{
+				console.log(cam2database[i]+" "+ parseInt(cam2database[i].split(":")[0])+ " "+ parseInt(cam2database[i].split(":")[1]))
+				if((parseInt(strhour) == parseInt(cam2database[i].split(":")[0])) && (parseInt(cam2database[i].split(":")[1]) == parseInt(strmin)) && (parseInt(cam2database[i].split(":")[2]) >= parseInt(strsec)))
+				{
+					cam2count = i;
+					break;
+				}			
+			}
+			console.log("CAM2 from frame = "+ cam2count)
+			if(cam2count == -1)
+			{
+				console.log("TIME CAM2 ERROR!!!!")
+			}
+			else cam2flag = 1;
+			setInterval(()=>{
+				if(cam2flag == 1)
+				{
+					cam2count++;
+					fs.readFile("/home/nhatquan/Videos/server/camera2/"+ cam2database[cam2count] +".jpeg", (err, data)=>{
+						if(data != undefined)
+						{
+							data[12] = 4;
+							ws.send(data);	
+							console.log(data)
+						}
+						else 
+						{
+							cam2flag = 0;
+							cam2count = -1;
+						}
+					})
+				}
+			},100)
+		}
+
+		// 3. Khi nhận message (các frame) từ ESP32 client thì save image file vào local storage (folder camera1 cho cam1 và camera2 cho cam2)
 		if(data[12] == 1)
 		{
 			if(iscam1fresh == 1)
@@ -112,8 +199,9 @@ wsServer.on("connection", (ws, req) => {
 			else
 			{
 				var moment = new Date();
-				fs.writeFile("/home/nhatquan/Videos/server/camera1/"+ moment.getHours()+":"+ moment.getMinutes()+":" + moment.getSeconds()+":" + moment.getMilliseconds()+".jpeg", data, ()=>{});
-				// fs.writeFile("/home/nhatquan/Videos/server/camera1/"+ count_1 + ".jpeg", data, ()=>{});
+				var dir = moment.getHours()+":"+ moment.getMinutes()+":" + moment.getSeconds()+":" + moment.getMilliseconds();
+				fs.writeFile("/home/nhatquan/Videos/server/camera1/"+ dir +".jpeg", data, ()=>{});
+				cam1database.push(dir)
 			}
 		}
 		if (data[12] == 2)
@@ -126,25 +214,31 @@ wsServer.on("connection", (ws, req) => {
 			else
 			{
 				var moment = new Date();
-				fs.writeFile("/home/nhatquan/Videos/server/camera2/"+ moment.getHours()+":"+ moment.getMinutes()+":" + moment.getSeconds()+":" + moment.getMilliseconds()+".jpeg", data, ()=>{});
+				var dir = moment.getHours()+":"+ moment.getMinutes()+":" + moment.getSeconds()+":" + moment.getMilliseconds();
+				fs.writeFile("/home/nhatquan/Videos/server/camera2/"+ dir +".jpeg", data, ()=>{});
+				cam2database.push(dir)
 			}
 		}
 
 
-		//3. Gửi STREAM đến tất cả các Web client đang lắng nghe
+		// 4. Gửi STREAM đến tất cả các Web client đang lắng nghe
         // Khi message khong phai la "WEB_CLIENT" (hay la connection). Thi tat ca cac message (ke ca la cua ESP32-1 hay ESP32-2) se duoc gui toi "ws" (tuc la WEB client) tuong ung dang connect request vao Server. 
 		// Sau do phia html (client) se tu xu ly message xem la cua ESP32-1 hay ESP32-2 de hien thi len dung khung
         // forEach callback function return ws[the element of array] & i[index of array]
+		
 		connectedClients.forEach((ws, i) => {
             // Chi client nao dang vao web (request 192.168.3.122:8000) thi moi nhan duoc message cua rieng no
             // Server tao cho moi client 1 "ws" de lien lac va tra du lieu cho client
             // VD: ws esp32 có ws="abc" liên tục gửi dữ liệu từ sever qua lời gọi ws.send(data). Thực ra là câu lệnh này cũng chỉ dành cho ESP32 gửi data mà thôi chứ WEB client chả gửi data gì vào socket
-			if (connectedClients[i] == ws && ws.readyState === ws.OPEN) {
+			if (connectedClients[i] == ws && ws.readyState === ws.OPEN) 
+			{
                 // Bản chất thì mỗi ESP32 Cam gửi dữ liệu lên Server và Server đẩy xuống cho client mà thôi
                 // Server gửi sang dashboard.html. Và dashboard.html phân biệt "data" thông qua ID để hiển thị lên Web cho đúng thẻ src của image (cho đúng khung mà thôi)
 				ws.send(data);          
-			} else {
-				connectedClients.splice(i, 1);  //splice 1 element from array
+			} 
+			else 
+			{
+				connectedClients.splice(i, 1);  //splice 1 element from array. "splice(start,count)"
 			}
 		});
 	});
@@ -155,5 +249,5 @@ wsServer.on("connection", (ws, req) => {
 });
 
 app.use(express.static("."));
-app.get("/", (req, res) => res.sendFile(path.resolve(__dirname, "./login.html")));
+app.get("/", (req, res) => res.sendFile(path.resolve(__dirname, "./views/login.html")));
 app.listen(HTTP_PORT, () => console.log(`HTTP server listening at ${HTTP_PORT}`));

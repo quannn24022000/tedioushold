@@ -1,0 +1,79 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="/style/specific.css"> 
+    <title>Dashboard</title>
+</head>
+
+<body>
+    <div id="header" >
+        <h1 >CAMERA DASHBOARD</h1>
+        <div id="logout" onclick="handler_back()">
+            <p>Back</p>
+        </div>
+    </div>  
+    <div class="cards">
+        <div class="card">
+            <h2><b>REVIEW FOR CAMERA 1</b></h2>
+            <div class="module">
+                <img id="ESP32-1" src=""/>
+            </div>
+        </div>
+    </div>
+    <div class="cards">
+        <div class="card-flex">
+            <form class="form">
+                <input class="time_set" id="value-time" placeholder="15:30:00" />
+            </form>
+            <div class="send_btn" onclick="handler_specific_camera1()">Send</div>
+        </div>
+    </div>
+    <script>
+        const WS_URL = 'ws:///192.168.3.122:8888';
+        const ws = new WebSocket(WS_URL);
+        let urlObject;
+        const img_1 = document.getElementById("ESP32-1");
+
+        ws.onopen = () => {
+            console.log(`Connected to ${WS_URL}`);
+        };
+
+        ws.onmessage = async (message) => {
+            const arrayBuffer = message.data;
+            var blobObj = new Blob([arrayBuffer]);          // construct of Blob has array argument (Blob là đối tượng chuyển đổi file ảnh, mảng thành dạng URL và nhờ vào URL để show ảnh )
+            const buf = await blobObj.arrayBuffer();
+            var uint8 = new Uint8Array(buf.slice(12, 13));  // get ID camera
+            var currentCam = uint8[0];                      // beacause an array has one element
+
+            if(currentCam == 3)
+            {
+                if (urlObject) {
+                    URL.revokeObjectURL(urlObject);
+                }
+                urlObject = URL.createObjectURL(blobObj);
+                img_1.src = urlObject;
+            }
+        }
+
+        //1. Handle send time review
+        function handler_specific_camera1()
+        {
+            if (document.getElementById("value-time").value == "")
+            {
+                console.log("Time error")
+                return
+            }
+            var hour = document.getElementById("value-time").value +".cctv1"
+            ws.send(hour);
+            console.log(hour);
+        }
+
+        function handler_back()
+        {
+            window.location.href = "./dashboard.html"
+        }
+    </script>
+
+</body>
+
+</html>
