@@ -24,11 +24,26 @@ var cam2flag = 0;
 let cam1count = -1;
 let cam2count = -1;
 
+// // Reload database trong truong hop truoc do tat server
+// fs.readFile("/home/nhatquan/Videos/backup/backupcam1.txt", (err, data)=>{
+// 	if( data == "")
+// 	{
+// 		cam1database = []
+// 	}
+// 	else cam1database = data
+// }
+
+// setInterval(()=>
+// {
+// 	fs.writeFile("/home/nhatquan/Videos/backup/backupcam1.txt", cam1database, (err,data)=>{});
+// 	fs.writeFile("/home/nhatquan/Videos/backup/backupcam1.txt", cam2database, (err,data)=>{});
+// },1000)
+
 //3. Reset lại bộ nhớ khi lưu trữ đủ 2 tiếng
 setInterval(()=>
 {
 	timecount ++;
-	if(timecount == 50000)
+	if(timecount == 60000)
 	{
 		console.log("REFRESH")
 		iscam1fresh = 1;
@@ -196,7 +211,7 @@ wsServer.on("connection", (ws, req) => {
 				fs.mkdir("/home/nhatquan/Videos/server/camera1", { recursive: true }, (err) => {console.log("Create database for camera 1 with error = "+ err)})
 				iscam1fresh = 0;
 			}
-			else
+			if(iscam1fresh == 0)
 			{
 				var moment = new Date();
 				var dir = moment.getHours()+":"+ moment.getMinutes()+":" + moment.getSeconds()+":" + moment.getMilliseconds();
@@ -211,7 +226,7 @@ wsServer.on("connection", (ws, req) => {
 				fs.mkdir("/home/nhatquan/Videos/server/camera2", { recursive: true }, (err) => {console.log("Create database for camera 2 with error = "+ err)})
 				iscam2fresh = 0;
 			}
-			else
+			if(iscam2fresh == 0)
 			{
 				var moment = new Date();
 				var dir = moment.getHours()+":"+ moment.getMinutes()+":" + moment.getSeconds()+":" + moment.getMilliseconds();
