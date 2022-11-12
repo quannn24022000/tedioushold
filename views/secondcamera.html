@@ -15,6 +15,9 @@
     <div class="cards">
         <div class="card">
             <h2><b>REVIEW FOR CAMERA 2</b></h2>
+            <div id="current-timer2" style="visibility: hidden">
+                <label id="minutes">00</label>:<label id="seconds">00</label>
+            </div>
             <div class="module">
                 <img id="ESP32-2" src=""/>
             </div>
@@ -66,11 +69,38 @@
             var hour = document.getElementById("value-time").value +".cctv2"
             ws.send(hour);
             console.log(hour);
+            document.getElementById("current-timer2").style.visibility = "visible"
         }
 
         function handler_back()
         {
             window.location.href = "./dashboard.html"
+        }
+
+         //Time count
+         var minutesLabel = document.getElementById("minutes");
+        var secondsLabel = document.getElementById("seconds");
+        var totalSeconds = 0;
+        setInterval(setTime, 1000);
+
+        function setTime() 
+        {
+            ++totalSeconds;
+            secondsLabel.innerHTML = pad(totalSeconds % 60);
+            minutesLabel.innerHTML = pad(parseInt(totalSeconds / 60));
+        }
+
+        function pad(val) 
+        {
+            var valString = val + "";
+            if (valString.length < 2) 
+            {
+                return "0" + valString;
+            } 
+            else 
+            {
+                return valString;
+            }
         }
     </script>
 
