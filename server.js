@@ -24,26 +24,37 @@ var cam2flag = 0;
 let cam1count = -1;
 let cam2count = -1;
 
-// // Reload database trong truong hop truoc do tat server
-// fs.readFile("/home/nhatquan/Videos/backup/backupcam1.txt", (err, data)=>{
-// 	if( data == "")
-// 	{
-// 		cam1database = []
-// 	}
-// 	else cam1database = data
-// }
+//II. RELOAD DATABASE
+//1. Reload database trong trường hợp trước đó tắt server, mất nguồn điện...
+fs.readFile('/home/nhatquan/Videos/backup/backupcam1.txt','utf8', (err, data)=>{
+	if(data.length == 0)
+		cam1database = []
+	else
+		cam1database = data.split(",")
+})
 
-// setInterval(()=>
-// {
-// 	fs.writeFile("/home/nhatquan/Videos/backup/backupcam1.txt", cam1database, (err,data)=>{});
-// 	fs.writeFile("/home/nhatquan/Videos/backup/backupcam1.txt", cam2database, (err,data)=>{});
-// },1000)
+fs.readFile('/home/nhatquan/Videos/backup/backupcam2.txt','utf8', (err, data)=>{
+	if(data.length == 0)
+		cam2database = []
+	else
+		cam2database = data.split(",")
+})
+
+//2. Liên tục đọc database để lưu backup trong trường hợp tháo cam, mất nguồn điện, tắt server
+setInterval(()=>
+{
+	// Nếu database không rỗng thì tiến hành lưu mảng vào file dữ liệu
+	if(cam1database.length != 0) 
+		fs.writeFile("/home/nhatquan/Videos/backup/backupcam1.txt", cam1database.toString(), (err,data)=>{});
+	if(cam2database.length != 0) 
+		fs.writeFile("/home/nhatquan/Videos/backup/backupcam2.txt", cam2database.toString(), (err,data)=>{});
+},1000)
 
 //3. Reset lại bộ nhớ khi lưu trữ đủ 2 tiếng
 setInterval(()=>
 {
 	timecount ++;
-	if(timecount == 60000)
+	if(timecount == 72000)
 	{
 		console.log("REFRESH")
 		iscam1fresh = 1;
@@ -56,7 +67,7 @@ setInterval(()=>
 	}
 },1000)
 
-//II. XỬ LÝ CHO CAMERA
+//III. XỬ LÝ CHO CAMERA
 //1. Single Camera
 //ws: refer for a single connection on server side
 // wsServer.on('connection', (ws, req)=>{
