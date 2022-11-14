@@ -34,6 +34,7 @@
     <script>
         const WS_URL = 'ws:///192.168.3.122:8888';
         const ws = new WebSocket(WS_URL);
+        let timetrace = 0;
         let urlObject;
         const img_2 = document.getElementById("ESP32-2");
 
@@ -61,14 +62,17 @@
         //1. Handle send time review
         function handler_specific_camera2()
         {
-            if (document.getElementById("value-time").value == "")
+            //1.1. Regular expression to get time and notify
+            var time = /^[0-9][0-9]:[0-9][0-9]:[0-9][0-9]$/gm.exec(document.getElementById("value-time").value)
+            if (time == null)
             {
-                console.log("Time error")
+                alert("Choose the right time format")
                 return
             }
-            var hour = document.getElementById("value-time").value +".cctv2"
+            var hour = time[0] +".cctv2"
             ws.send(hour);
             console.log(hour);
+            timetrace = 1;
             document.getElementById("current-timer2").style.visibility = "visible"
         }
 
@@ -85,9 +89,12 @@
 
         function setTime() 
         {
-            ++totalSeconds;
-            secondsLabel.innerHTML = pad(totalSeconds % 60);
-            minutesLabel.innerHTML = pad(parseInt(totalSeconds / 60));
+            if(timetrace == 1)
+            {
+                ++totalSeconds;
+                secondsLabel.innerHTML = pad(totalSeconds % 60);
+                minutesLabel.innerHTML = pad(parseInt(totalSeconds / 60));
+            }
         }
 
         function pad(val) 

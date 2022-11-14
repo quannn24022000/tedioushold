@@ -67,7 +67,7 @@
         let urlObject_1, urlObject_2;
         var imageFrame;
 
-        const WS_URL = 'ws:///42.117.129.71:8888';
+        const WS_URL = 'ws:///192.168.3.122:8888';
         const ws = new WebSocket(WS_URL);
         const img_1 = document.getElementById("ESP32-1");
         const img_2 = document.getElementById("ESP32-2");
@@ -78,7 +78,7 @@
 
         //2.1 Handler message from Websocket for single camera
         // const img = document.querySelector('img');
-        // const WS_URL = 'ws:///192.168.3.122:8888';
+        // const WS_URL = 'ws:///42.117.129.71:8888' => PORT FORWARDING
         // const ws = new WebSocket(WS_URL);
         // let urlObject;
         // ws.onopen = () => console.log(`Connected to ${WS_URL}`);

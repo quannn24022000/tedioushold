@@ -136,7 +136,7 @@ wsServer.on("connection", (ws, req) => {
 			console.log("CAM1 from frame = "+ cam1count)
 			if(cam1count == -1)
 			{
-				console.log("TIME CAM1 ERROR!!!!")
+				console.log("Dont have any frame database for Camera1")
 			}
 			else cam1flag = 1;
 			setInterval(()=>{
@@ -148,7 +148,6 @@ wsServer.on("connection", (ws, req) => {
 						{
 							data[12] = 3;
 							ws.send(data);	
-							console.log(data)
 						}
 						else 
 						{
@@ -179,7 +178,7 @@ wsServer.on("connection", (ws, req) => {
 			console.log("CAM2 from frame = "+ cam2count)
 			if(cam2count == -1)
 			{
-				console.log("TIME CAM2 ERROR!!!!")
+				console.log("Dont have any frame database for Camera2")
 			}
 			else cam2flag = 1;
 			setInterval(()=>{
@@ -191,7 +190,6 @@ wsServer.on("connection", (ws, req) => {
 						{
 							data[12] = 4;
 							ws.send(data);	
-							console.log(data)
 						}
 						else 
 						{
