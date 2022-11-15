@@ -4,6 +4,7 @@ const WebSocket = require("ws");
 const fs = require("fs");
 const { parse } = require("path");
 const app = express();
+const nodemailer = require('nodemailer')
 
 const WS_PORT = 8888;
 const HTTP_PORT = 8000;
@@ -23,6 +24,36 @@ var cam1flag = 0;
 var cam2flag = 0;
 let cam1count = -1;
 let cam2count = -1;
+
+//3. Function để gửi email cảnh báo khi có detect
+async function warning_email_handler(filename) {
+  // SMTP config
+  const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com", 
+    port: 587,
+    auth: {
+      user: "quan.nn24022000dzs@gmail.com", // Your Email address
+      pass: "rjnzrfvxglzcdfqe",			    // Your Email password
+    },
+  }); // Send the email
+  let info = await transporter.sendMail({
+    from: '"Nguyen Nhat Quan" <foo@example.com>',
+    to: "quan.nn24022000@gmail.com", 		// Test email address
+    subject: "Secure Camera System",
+    text: "Detection from secure camera system",
+	html: '<h3>Dear!</h3>'
+	+     '<h3>Currently, the security camera identification system is detecting someone unsafe intrusion. The system sends you a picture of that person, hopefully it will ensure the safety of your home</h3>'
+	+     '<h3>Thank you and hope everything will be fine</h3>',
+	attachments: [{   						// stream as an attachment
+		filename: filename,
+		content: fs.createReadStream('./style/'+filename)
+	}],
+  });
+  console.log("Message sent: %s", info.messageId); // Output message ID
+}
+var filename = 'background.jpeg'
+warning_email_handler(filename).catch(console.error);
+
 
 //II. RELOAD DATABASE
 //1. Reload database trong trường hợp trước đó tắt server, mất nguồn điện...
