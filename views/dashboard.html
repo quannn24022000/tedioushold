@@ -3,6 +3,10 @@
 <head>
     <link rel="stylesheet" href="/style/dashboard.css"> 
     <title>Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.js"
+	    integrity="sha256-JOJ7NmVm2chxYZ1KPcAYd2bwVK7NaFj9QKMp7DClews=" crossorigin="anonymous">
+    </script>
 </head>
 
 <body>
@@ -65,12 +69,22 @@
 
     <script>
         let urlObject_1, urlObject_2;
+        let traceObj;
         var imageFrame;
+        var flag = 0;
+        var counter = 0;
 
         const WS_URL = 'ws:///192.168.3.122:8888';
         const ws = new WebSocket(WS_URL);
         const img_1 = document.getElementById("ESP32-1");
         const img_2 = document.getElementById("ESP32-2");
+
+        //1. Load models
+        async function init()
+        {
+            await faceapi.nets.ssdMobilenetv1.loadFromUri('/models')
+        }
+        init();
 
         //1. Khởi tạo ở giá trị "pause" và đợi chờ đến "play" để phát video
         window["cam_1_enabler"] = false;
@@ -104,6 +118,8 @@
             var uint8 = new Uint8Array(buf.slice(12, 13));  // get ID camera
             var currentCam = uint8[0];                      // beacause an array has one element
 
+            traceObj = blobObj
+
             if(currentCam == 1)
             {
                 imageFrame = img_1;
@@ -127,6 +143,28 @@
                 imageFrame.src = urlObject_2;
             }
         }
+
+        setInterval(async () =>{
+            if(flag == 1)
+            {
+                counter ++;
+                if(counter % 180)
+                    flag = 0;
+            }
+            if(flag == 0)
+            {
+                const img = await faceapi.bufferToImage(traceObj);
+                const detection = await faceapi.detectSingleFace(img)
+                if(detection != undefined)
+                {
+                    flag = 1;
+                    const buf = await traceObj.arrayBuffer();
+                    var uint8 = new Uint8Array(buf.slice(12, 13));  // get ID camera
+                    var traceCam = uint8[0];
+                    ws.send("capturetrace"+traceCam)
+                }
+            }               
+        },10000)
 
         //3.  Time handle
         let timer_1 = document.getElementById("current-timer1");
@@ -241,6 +279,33 @@
             }
             var fileName = getFomattedTime(source === "cam_1_enabler" ? "ESP32CAM1" : "ESP32CAM2") + ".jpeg";
             forceDownload(blobUrl, fileName);
+        }
+
+        //8. Handler for active warning by email
+        function handler_warning_camera_1()
+        {
+            element = document.getElementById("cam_1_warning");
+            if(element.innerHTML == "Observe")
+            {
+                element.innerHTML = "Warning";  
+            }
+            else 
+            {
+                element.innerHTML = "Observe";
+            }
+        }
+
+        function handler_warning_camera_2()
+        {
+            element = document.getElementById("cam_2_warning");
+            if(element.innerHTML == "Observe")
+            {
+                element.innerHTML = "Warning";  
+            }
+            else 
+            {
+                element.innerHTML = "Observe";
+            }
         }
 
 

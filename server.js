@@ -24,9 +24,10 @@ var cam1flag = 0;
 var cam2flag = 0;
 let cam1count = -1;
 let cam2count = -1;
+var filename = "";
 
 //3. Function để gửi email cảnh báo khi có detect
-async function warning_email_handler(filename) {
+async function warning_email_handler(filename, camera) {
   // SMTP config
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com", 
@@ -46,13 +47,11 @@ async function warning_email_handler(filename) {
 	+     '<h3>Thank you and hope everything will be fine</h3>',
 	attachments: [{   						// stream as an attachment
 		filename: filename,
-		content: fs.createReadStream('./style/'+filename)
+		content: fs.createReadStream(filename)
 	}],
   });
   console.log("Message sent: %s", info.messageId); // Output message ID
 }
-var filename = 'background.jpeg'
-warning_email_handler(filename).catch(console.error);
 
 
 //II. RELOAD DATABASE
@@ -155,6 +154,22 @@ wsServer.on("connection", (ws, req) => {
 			connectedClients.push(ws);
 			console.log("Web client connected");
 			//1.2 Khi data chi la su kien connect vao SERVER (WEB_CLIENT) thi return va chi return cho callback cua "onmessage" chu khong phai "connection"
+			return;                         
+		}
+
+		if (data.indexOf("capturetrace1") !== -1) 
+		{
+			filename = "/home/nhatquan/Videos/server/camera1/"+ cam1database[cam1database.length-5] +".jpeg"
+			console.log("System Detect Warning From Camera 1!!!!!")
+			warning_email_handler(filename).catch(console.error);
+			return;                         
+		}
+
+		if (data.indexOf("capturetrace2") !== -1) 
+		{
+			filename = "/home/nhatquan/Videos/server/camera2/"+ cam2database[cam2database.length-5] +".jpeg"
+			console.log("System Detect Warning From Camera 2!!!!!")
+			warning_email_handler(filename).catch(console.error);
 			return;                         
 		}
 
