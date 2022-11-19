@@ -17,14 +17,13 @@ const wsServer = new WebSocket.Server({ port: WS_PORT }, () => console.log(`WS S
 let connectedClients = [];							// Biến lưu trữ số web client đang connect đến socket (pc, mobile...)
 let iscam1fresh = 1;								// Check xem có cần tạo folder để chứa frame cho cam 1 hay không
 let iscam2fresh = 1;								
-let timecount = 0;									// Thời gian reset (xóa folder của các cam = time lưu trữ) = 2 tiếng
 let cam1database = [];								// Mảng các chuỗi lưu trữ thời gian lưu ảnh => giúp lưu trữ lại thứ tự để xuất ảnh ra
 let cam2database = [];
 var cam1flag = 0; 
 var cam2flag = 0;
 let cam1count = -1;
 let cam2count = -1;
-var filename = "";
+let filename = "";
 
 //3. Function để gửi email cảnh báo khi có detect
 async function warning_email_handler(filename, camera) {
@@ -60,14 +59,20 @@ fs.readFile('/home/nhatquan/Videos/backup/backupcam1.txt','utf8', (err, data)=>{
 	if(data.length == 0)
 		cam1database = []
 	else
+	{
 		cam1database = data.split(",")
+		iscam1fresh = 0;
+	}	
 })
 
 fs.readFile('/home/nhatquan/Videos/backup/backupcam2.txt','utf8', (err, data)=>{
 	if(data.length == 0)
 		cam2database = []
 	else
+	{
 		cam2database = data.split(",")
+		iscam2fresh = 0;
+	}
 })
 
 //2. Liên tục đọc database để lưu backup trong trường hợp tháo cam, mất nguồn điện, tắt server
@@ -78,24 +83,19 @@ setInterval(()=>
 		fs.writeFile("/home/nhatquan/Videos/backup/backupcam1.txt", cam1database.toString(), (err,data)=>{});
 	if(cam2database.length != 0) 
 		fs.writeFile("/home/nhatquan/Videos/backup/backupcam2.txt", cam2database.toString(), (err,data)=>{});
-},1000)
+},3000)
 
 //3. Reset lại bộ nhớ khi lưu trữ đủ 2 tiếng
 setInterval(()=>
 {
-	timecount ++;
-	if(timecount == 72000)
-	{
-		console.log("REFRESH")
-		iscam1fresh = 1;
-		iscam2fresh = 1;
-		cam1database = [];
-		cam2database = [];
-		fs.rm("/home/nhatquan/Videos/server/camera1", { recursive: true, force: true }, (err) => {console.log("error camera 1 remove database = "+ err)})
-		fs.rm("/home/nhatquan/Videos/server/camera2", { recursive: true, force: true }, (err) => {console.log("error camera 1 remove database = "+ err)})
-		timecount = 0;
-	}
-},1000)
+	console.log("REFRESH")
+	iscam1fresh = 1;
+	iscam2fresh = 1;
+	cam1database = [];
+	cam2database = [];
+	fs.rm("/home/nhatquan/Videos/server/camera1", { recursive: true, force: true }, (err) => {console.log("error camera 1 remove database = "+ err)})
+	fs.rm("/home/nhatquan/Videos/server/camera2", { recursive: true, force: true }, (err) => {console.log("error camera 1 remove database = "+ err)})
+},7200000)
 
 //III. XỬ LÝ CHO CAMERA
 //1. Single Camera
@@ -143,7 +143,6 @@ setInterval(()=>
 */
 
 wsServer.on("connection", (ws, req) => {
-	console.log("Connected");
 	
 	// 1. Send image
 	ws.on("message", (data) => {
@@ -183,7 +182,6 @@ wsServer.on("connection", (ws, req) => {
 			strsec = data.toString().split(":")[2];
 			for(let i = 0; i < cam1database.length; i++)
 			{
-				console.log(cam1database[i]+" "+ parseInt(cam1database[i].split(":")[0])+ " "+ parseInt(cam1database[i].split(":")[1]))
 				if((parseInt(strhour) == parseInt(cam1database[i].split(":")[0])) && (parseInt(cam1database[i].split(":")[1]) == parseInt(strmin)) && (parseInt(cam1database[i].split(":")[2]) >= parseInt(strsec)))
 				{
 					cam1count = i;
@@ -191,11 +189,14 @@ wsServer.on("connection", (ws, req) => {
 				}			
 			}
 			console.log("CAM1 from frame = "+ cam1count)
+
 			if(cam1count == -1)
 			{
 				console.log("Dont have any frame database for Camera1")
+				return;
 			}
-			else cam1flag = 1;
+			
+			cam1flag = 1;
 			setInterval(()=>{
 				if(cam1flag == 1)
 				{
@@ -213,7 +214,8 @@ wsServer.on("connection", (ws, req) => {
 						}
 					})
 				}
-			},100)
+			},100);
+			return;
 		}
 
 		//2.2 Review camera 2
@@ -225,7 +227,6 @@ wsServer.on("connection", (ws, req) => {
 			strsec = data.toString().split(":")[2];
 			for(let i = 0; i < cam2database.length; i++)
 			{
-				console.log(cam2database[i]+" "+ parseInt(cam2database[i].split(":")[0])+ " "+ parseInt(cam2database[i].split(":")[1]))
 				if((parseInt(strhour) == parseInt(cam2database[i].split(":")[0])) && (parseInt(cam2database[i].split(":")[1]) == parseInt(strmin)) && (parseInt(cam2database[i].split(":")[2]) >= parseInt(strsec)))
 				{
 					cam2count = i;
@@ -233,11 +234,14 @@ wsServer.on("connection", (ws, req) => {
 				}			
 			}
 			console.log("CAM2 from frame = "+ cam2count)
+
 			if(cam2count == -1)
 			{
 				console.log("Dont have any frame database for Camera2")
+				return;
 			}
-			else cam2flag = 1;
+
+			cam2flag = 1;
 			setInterval(()=>{
 				if(cam2flag == 1)
 				{
@@ -255,17 +259,13 @@ wsServer.on("connection", (ws, req) => {
 						}
 					})
 				}
-			},100)
+			},100);
+			return;
 		}
 
 		// 3. Khi nhận message (các frame) từ ESP32 client thì save image file vào local storage (folder camera1 cho cam1 và camera2 cho cam2)
 		if(data[12] == 1)
 		{
-			if(iscam1fresh == 1)
-			{
-				fs.mkdir("/home/nhatquan/Videos/server/camera1", { recursive: true }, (err) => {console.log("Create database for camera 1 with error = "+ err)})
-				iscam1fresh = 0;
-			}
 			if(iscam1fresh == 0)
 			{
 				var moment = new Date();
@@ -273,20 +273,25 @@ wsServer.on("connection", (ws, req) => {
 				fs.writeFile("/home/nhatquan/Videos/server/camera1/"+ dir +".jpeg", data, ()=>{});
 				cam1database.push(dir)
 			}
+			if (iscam1fresh == 1)
+			{
+				fs.mkdir("/home/nhatquan/Videos/server/camera1", { recursive: true }, (err) => {console.log("Create database for camera 1 with error = "+ err)})
+				iscam1fresh = 0;
+			}
 		}
 		if (data[12] == 2)
 		{
-			if(iscam2fresh == 1)
-			{
-				fs.mkdir("/home/nhatquan/Videos/server/camera2", { recursive: true }, (err) => {console.log("Create database for camera 2 with error = "+ err)})
-				iscam2fresh = 0;
-			}
 			if(iscam2fresh == 0)
 			{
 				var moment = new Date();
 				var dir = moment.getHours()+":"+ moment.getMinutes()+":" + moment.getSeconds()+":" + moment.getMilliseconds();
 				fs.writeFile("/home/nhatquan/Videos/server/camera2/"+ dir +".jpeg", data, ()=>{});
 				cam2database.push(dir)
+			}
+			if (iscam2fresh == 1)
+			{
+				fs.mkdir("/home/nhatquan/Videos/server/camera2", { recursive: true }, (err) => {console.log("Create database for camera 2 with error = "+ err)})
+				iscam2fresh = 0;
 			}
 		}
 
