@@ -24,6 +24,7 @@ var cam2flag = 0;
 let cam1count = -1;
 let cam2count = -1;
 let filename = "";
+let detector = 1;
 
 //3. Function để gửi email cảnh báo khi có detect
 async function warning_email_handler(filename, camera) {
@@ -97,6 +98,10 @@ setInterval(()=>
 	fs.rm("/home/nhatquan/Videos/server/camera2", { recursive: true, force: true }, (err) => {console.log("error camera 1 remove database = "+ err)})
 },7200000)
 
+setInterval(()=>{
+	detector = 1;
+},1200000)
+
 //III. XỬ LÝ CHO CAMERA
 //1. Single Camera
 //ws: refer for a single connection on server side
@@ -147,12 +152,17 @@ wsServer.on("connection", (ws, req) => {
 	// 1. Send image
 	ws.on("message", (data) => {
 		//1. Lắng nghe connect từ web client
-		if (data.indexOf("WEB_CLIENT") !== -1) 
+		if (data.indexOf("webclient") !== -1) 
 		{
 			//1.1 Doi voi cac clien request page (192.168.3.122:8000) chi don gian la push vao ARR va return ve
 			connectedClients.push(ws);
 			console.log("Web client connected");
-			//1.2 Khi data chi la su kien connect vao SERVER (WEB_CLIENT) thi return va chi return cho callback cua "onmessage" chu khong phai "connection"
+			//1.2 Kích hoạt active cho việc gửi email cảnh báo chu kì 20p một lần nếu nhận diện được khuôn mặt
+			if(detector == 1)
+			{
+				console.log("Allow dectect handle");
+				ws.send("activehandle");
+			}
 			return;                         
 		}
 
@@ -161,6 +171,7 @@ wsServer.on("connection", (ws, req) => {
 			filename = "/home/nhatquan/Videos/server/camera1/"+ cam1database[cam1database.length-5] +".jpeg"
 			console.log("System Detect Warning From Camera 1!!!!!")
 			warning_email_handler(filename).catch(console.error);
+			detector = 0;
 			return;                         
 		}
 
@@ -169,6 +180,7 @@ wsServer.on("connection", (ws, req) => {
 			filename = "/home/nhatquan/Videos/server/camera2/"+ cam2database[cam2database.length-5] +".jpeg"
 			console.log("System Detect Warning From Camera 2!!!!!")
 			warning_email_handler(filename).catch(console.error);
+			detector = 0;
 			return;                         
 		}
 
@@ -176,6 +188,7 @@ wsServer.on("connection", (ws, req) => {
 		//2.1 Review camera 1
 		if( data.indexOf("cctv1") !== -1)
 		{
+			cam1count = -1;
 			strtime = data.toString().split(".")[0];
 			strhour = data.toString().split(":")[0];
 			strmin = data.toString().split(":")[1];
@@ -192,7 +205,9 @@ wsServer.on("connection", (ws, req) => {
 
 			if(cam1count == -1)
 			{
+				ws.send("cam1counterror."+ cam1database[0]);
 				console.log("Dont have any frame database for Camera1")
+				cam1flag = 0;
 				return;
 			}
 			
@@ -214,13 +229,14 @@ wsServer.on("connection", (ws, req) => {
 						}
 					})
 				}
-			},100);
+			}, 100);
 			return;
 		}
 
 		//2.2 Review camera 2
 		if( data.indexOf("cctv2") !== -1)
 		{
+			cam2count = -1;
 			strtime = data.toString().split(".")[0];
 			strhour = data.toString().split(":")[0];
 			strmin = data.toString().split(":")[1];
@@ -237,7 +253,9 @@ wsServer.on("connection", (ws, req) => {
 
 			if(cam2count == -1)
 			{
+				ws.send("cam2counterror."+ cam1database[0]);
 				console.log("Dont have any frame database for Camera2")
+				cam2flag = 0;
 				return;
 			}
 
@@ -259,7 +277,7 @@ wsServer.on("connection", (ws, req) => {
 						}
 					})
 				}
-			},100);
+			}, 100);
 			return;
 		}
 

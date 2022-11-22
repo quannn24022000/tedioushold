@@ -73,8 +73,9 @@
         var imageFrame;
         var flag = 0;
         var counter = 0;
+        var detector = 0;
 
-        const WS_URL = 'ws:///192.168.3.122:8888';
+        const WS_URL = 'ws:///113.188.32.153:8888';
         const ws = new WebSocket(WS_URL);
         const img_1 = document.getElementById("ESP32-1");
         const img_2 = document.getElementById("ESP32-2");
@@ -108,10 +109,16 @@
         //2.2 Function for MULTIPLE CAMERA
         ws.onopen = () => {
             console.log(`Connected to ${WS_URL}`);
-            ws.send("WEB_CLIENT");
+            ws.send("webclient");
         };
 
         ws.onmessage = async (message) => {
+            if (message.data == "activehandle")
+            {
+                detector = 1;
+                return;
+            }
+
             const arrayBuffer = message.data;
             var blobObj = new Blob([arrayBuffer]);          // construct of Blob has array argument (Blob là đối tượng chuyển đổi file ảnh, mảng thành dạng URL và nhờ vào URL để show ảnh )
             const buf = await blobObj.arrayBuffer();
@@ -145,13 +152,7 @@
         }
 
         setInterval(async () =>{
-            if(flag == 1)
-            {
-                counter ++;
-                if(counter % 180)
-                    flag = 0;
-            }
-            if(flag == 0)
+            if(detector == 1)
             {
                 const img = await faceapi.bufferToImage(traceObj);
                 const detection = await faceapi.detectSingleFace(img)
@@ -162,6 +163,7 @@
                     var uint8 = new Uint8Array(buf.slice(12, 13));  // get ID camera
                     var traceCam = uint8[0];
                     ws.send("capturetrace"+traceCam)
+                    detector = 0;
                 }
             }               
         },10000)

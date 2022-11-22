@@ -32,9 +32,9 @@
         </div>
     </div>
     <script>
-        const WS_URL = 'ws:///192.168.3.122:8888';
+        const WS_URL = 'ws:///113.188.32.153:8888';
         const ws = new WebSocket(WS_URL);
-        let timetrace = 0;
+        let timetrace = -1;
         let urlObject;
         const img_2 = document.getElementById("ESP32-2");
 
@@ -43,6 +43,16 @@
         };
 
         ws.onmessage = async (message) => {
+            if ((message.data).toString().indexOf("cam2counterror") > -1)
+            {
+                var start = (message.data).split(".")[1];
+                if(start == "undefined")
+                    alert("Sever doesn't have any database !!!")
+                else alert("You can review from "+ start)
+                timetrace = -1;
+                return;
+            }
+            timetrace = 1;
             const arrayBuffer = message.data;
             var blobObj = new Blob([arrayBuffer]);          // construct of Blob has array argument (Blob là đối tượng chuyển đổi file ảnh, mảng thành dạng URL và nhờ vào URL để show ảnh )
             const buf = await blobObj.arrayBuffer();
@@ -72,8 +82,6 @@
             var hour = time[0] +".cctv2"
             ws.send(hour);
             console.log(hour);
-            timetrace = 1;
-            document.getElementById("current-timer2").style.visibility = "visible"
         }
 
         function handler_back()
@@ -82,7 +90,7 @@
         }
 
          //Time count
-         var minutesLabel = document.getElementById("minutes");
+        var minutesLabel = document.getElementById("minutes");
         var secondsLabel = document.getElementById("seconds");
         var totalSeconds = 0;
         setInterval(setTime, 1000);
@@ -94,6 +102,7 @@
                 ++totalSeconds;
                 secondsLabel.innerHTML = pad(totalSeconds % 60);
                 minutesLabel.innerHTML = pad(parseInt(totalSeconds / 60));
+                document.getElementById("current-timer2").style.visibility = "visible"
             }
         }
 
