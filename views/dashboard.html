@@ -68,12 +68,12 @@
     </div>
 
     <script>
-        let urlObject_1, urlObject_2;
+        let urlObject_1, urlObject_2;                          // Các URL Object thể hiện cho ID camera là 1 hay 2
         let traceObj;
         var imageFrame;
-        var flag = 0;
+        var flag = 0;                                          // Để đánh dấu xem có detect được khuôn mặt hay không trong quá trình gọi đến image processing
         var counter = 0;
-        var detector = 0;
+        var detector = 0;                                      // Là biến để đánh dấu cho việc có active handler face detection hay không?. Biến này được đánh dấu nhờ server send message "activehandle" 
 
         const WS_URL = 'ws:///113.188.32.153:8888';
         const ws = new WebSocket(WS_URL);
@@ -107,11 +107,16 @@
         // }
 
         //2.2 Function for MULTIPLE CAMERA
+
+        // - "onopen" event is fired when a connection with a WebSocket is opened
         ws.onopen = () => {
             console.log(`Connected to ${WS_URL}`);
+
+            //ws.send => gửi data để server nhận được thông qua event "ws.on("message")" phía server
             ws.send("webclient");
         };
 
+        // -"onmessage" event cũng là defaut event khi có data được gửi từ server thông qua sự kiện "ws.send()" từ server
         ws.onmessage = async (message) => {
             if (message.data == "activehandle")
             {
@@ -119,12 +124,14 @@
                 return;
             }
 
+            //a. "arrayBuffer" lưu giữ các frame ảnh được gửi từ Server cho Web client
             const arrayBuffer = message.data;
             var blobObj = new Blob([arrayBuffer]);          // construct of Blob has array argument (Blob là đối tượng chuyển đổi file ảnh, mảng thành dạng URL và nhờ vào URL để show ảnh )
             const buf = await blobObj.arrayBuffer();
             var uint8 = new Uint8Array(buf.slice(12, 13));  // get ID camera
             var currentCam = uint8[0];                      // beacause an array has one element
 
+            //traceObj để đánh dấu cho object có face detection
             traceObj = blobObj
 
             if(currentCam == 1)
@@ -151,7 +158,10 @@
             }
         }
 
+        // 10s kích hoạt detection 1 lần vì bản thân các frame liên tục trong vòng 1,2s là khá giống nhau 
         setInterval(async () =>{
+            
+            // "detector = 1" khi mà server gửi "ws.send()" message "activehandle"
             if(detector == 1)
             {
                 const img = await faceapi.bufferToImage(traceObj);
@@ -163,6 +173,8 @@
                     var uint8 = new Uint8Array(buf.slice(12, 13));  // get ID camera
                     var traceCam = uint8[0];
                     ws.send("capturetrace"+traceCam)
+
+                    // Tìm được thì dừng detector để không diễn ra quá trình image processing tránh việc handle => delay do process scan liên tục
                     detector = 0;
                 }
             }               

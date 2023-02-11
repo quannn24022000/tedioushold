@@ -34,7 +34,7 @@
     <script>
         const WS_URL = 'ws:///113.188.32.153:8888';
         const ws = new WebSocket(WS_URL);
-        let timetrace = -1;
+        let timetrace = -1;                                    // Đánh dấu cho việc tìm được thời gian để show frame
         let urlObject;
         const img_1 = document.getElementById("ESP32-1");
 
@@ -43,15 +43,20 @@
         };
 
         ws.onmessage = async (message) => {
+            // Sụ kiện cam1counterror xảy ra với 2 trường hợp
             if ((message.data).toString().indexOf("cam1counterror") > -1)
             {
                 var start = (message.data).split(".")[1];
+                //TH1: Khi không có data => input giờ sai cú pháp, database ko có gì
                 if(start == "undefined")
                     alert("Sever doesn't have any database !!!")
+                //TH2: Database có nhưng không chứa khoảng thời gian ở input time
                 else alert("You can review from "+ start)
                 timetrace = -1;
                 return;
             }
+
+            //Khi đã tìm được ảnh và server đã gửi sang
             timetrace = 1;
             const arrayBuffer = message.data;
             var blobObj = new Blob([arrayBuffer]);          // construct of Blob has array argument (Blob là đối tượng chuyển đổi file ảnh, mảng thành dạng URL và nhờ vào URL để show ảnh )
@@ -59,6 +64,7 @@
             var uint8 = new Uint8Array(buf.slice(12, 13));  // get ID camera
             var currentCam = uint8[0];                      // beacause an array has one element
 
+            // minor version = 3 => gửi cho "firstcamera only"!!!
             if(currentCam == 3)
             {
                 if (urlObject) {
@@ -69,7 +75,7 @@
             }
         }
 
-        //1. Handle send time review
+        //1. Handle send time review trên form (html action set only)
         function handler_specific_camera1()
         {
             //1.1. Regular expression to get time and notify
