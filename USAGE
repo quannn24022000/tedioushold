@@ -1,0 +1,10 @@
+Step 1: Clone this source code (from docker Linux enviroment)
+Step 2: Build the source code: 
+        command:   install .
+Step 3: Install npm:
+        command:   sudo apt install npm
+Step 4: Install nodemon
+        command:   sudo apt install nodemon
+Step 5: Start system with
+        command:   nodemon server.js
+Step 6: Change the source code with intentional idea
